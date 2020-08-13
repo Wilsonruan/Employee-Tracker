@@ -4,8 +4,9 @@ var { prompt } = require("inquirer");
 var con = mysql.createConnection({
   host: "localhost",
   port: process.env.PORT || 3306,
-  user: "wilsonruan23@gmail.com",
-  password: "Qwaszx92!"
+  user: "root",
+  password: "Qwaszx92!",
+  database: "employee_db"
 });
 
 con.connect(function(err) {
