@@ -19,26 +19,27 @@ function start_function () {
   inquirer.prompt (
     {
       type: "list",
-      name: "deparment",
-      message: "Please select department function:",
+      name: "department",
+      message: "What would you like to do?",
       choices: [
-          "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role"
+          "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role",
+          "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
       ]
   }
   ).then((response) => {
-    if (response.deparment == "Add Department") {
+    if (response.department == "Add Department") {
       add_department(response.department_name);
-  } else if (response.deparment == "View Departments") {
+  } else if (response.department == "View Departments") {
       view_departments();
-  } else if (response.deparment == "Add Role") {
+  } else if (response.department == "Add Role") {
       add_role(response);
-  } else if (response.deparment == "View Roles") {
+  } else if (response.department == "View Roles") {
       view_roles();
-  } else if (response.deparment == "Add Employee") {
+  } else if (response.department == "Add Employee") {
       add_employee(response);
-  } else if (response.deparment == "View Employees") {
+  } else if (response.department == "View Employees") {
       view_employees();
-  } else if (response.deparment == "Update Employee Role") {
+  } else if (response.department == "Update Employee Role") {
       update_employee_roles(response);
   } 
   }).catch((err) => {
