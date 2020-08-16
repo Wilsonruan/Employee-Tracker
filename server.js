@@ -25,7 +25,15 @@ function start_function () {
           "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role",
           "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
       ]
-  }
+  },
+  {
+      type: "input",
+      name: "department_name",
+      message: "Input Department Name:",
+      when: function (answers) {
+          return answers.what_to_do == "Add Department"
+      }
+  },
   ).then((response) => {
     if (response.department == "Add Department") {
       add_department(response.department_name);
@@ -46,4 +54,16 @@ function start_function () {
     console.error(err)
     return connection.end()
 })
+}
+
+function add_department (response) {
+  var string = 
+  `
+      INSERT INTO department (dept_name)
+      VALUES ("${response}")
+  `;
+  con.query(string, function (err, res) {
+    if (err) throw err; 
+    start_function()
+  })
 }
