@@ -1,69 +1,364 @@
 var mysql = require("mysql");
-var inquirer = require("inquirer")
+var inquirer = require("inquirer");
 
-var con = mysql.createConnection({
-  host: "localhost",
-  port: process.env.PORT || 3306,
-  user: "root",
-  password: "Qwaszx92!",
-  database: "employee_db"
+var connection = mysql.createConnection({
+    host: "localhost",
+    port: process.env.PORT || 3306,
+    user: "root",
+    password: "Qwaszx92!",
+    database: "employee_db"
 });
 
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("Connected!");
-  start_function ()
+connection.connect(function (err) {
+    if (err) {
+        console.error("This isn't working!!!!" + connection.config)
+        throw err;
+    }
+    console.log("connected as id " + connection.threadId);
+    start_employee_tracker()
+
 });
 
-function start_function () {
-  inquirer.prompt (
+const questions = [
     {
-      type: "list",
-      name: "department",
-      message: "What would you like to do?",
-      choices: [
-          "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role",
-          "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
-      ]
-  },
-  {
-      type: "input",
-      name: "department_name",
-      message: "Input Department Name:",
-      when: function (answers) {
-          return answers.what_to_do == "Add Department"
-      }
-  },
-  ).then((response) => {
-    if (response.department == "Add Department") {
-      add_department(response.department_name);
-  } else if (response.department == "View Departments") {
-      view_departments();
-  } else if (response.department == "Add Role") {
-      add_role(response);
-  } else if (response.department == "View Roles") {
-      view_roles();
-  } else if (response.department == "Add Employee") {
-      add_employee(response);
-  } else if (response.department == "View Employees") {
-      view_employees();
-  } else if (response.department == "Update Employee Role") {
-      update_employee_roles(response);
-  } 
-  }).catch((err) => {
-    console.error(err)
-    return connection.end()
-})
+        type: "list",
+        name: "what_to_do",
+        message: "What would you like to do?",
+        choices: [
+            "Add Department", "View Departments","Add Role", "View Roles", "Add Employee", "View Employees", "Update Employee Role", "Exit"
+            //, "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
+        ]
+    },
+    {
+        type: "input",
+        name: "department_name",
+        message: "Input Department Name:",
+        when: function (answers) {
+            return answers.what_to_do == "Add Department"
+        }
+    }
+]
+
+function start_employee_tracker() {
+
+    inquirer.prompt(questions)
+        .then((response) => {
+            if (response.what_to_do == "Add Department") {
+                add_department(response.department_name);
+            } else if (response.what_to_do == "View Departments") {
+                view_departments();
+            } else if (response.what_to_do == "Add Role") {
+                add_role(response);
+            } else if (response.what_to_do == "View Roles") {
+                view_roles();
+            } else if (response.what_to_do == "Add Employee") {
+                add_employee(response);
+            } else if (response.what_to_do == "View Employees") {
+                view_employees();
+            } else if (response.what_to_do == "Update Employee Role") {
+                update_employee_roles(response);
+            } else if (response.what_to_do == "Exit") {
+                console.log("Thank you for using Employee Tracker!")
+                return connection.end()
+            }
+        }).catch((err) => {
+            console.error(err)
+            return connection.end()
+        })
 }
 
-function add_department (response) {
-  var string = 
-  `
-      INSERT INTO department (dept_name)
-      VALUES ("${response}")
-  `;
-  con.query(string, function (err, res) {
-    if (err) throw err; 
-    start_function()
-  })
+function add_department(department) {
+    const query_str =
+        `
+            INSERT INTO department (dept_name)
+            VALUES ("${department}")
+        `;
+    connection.query(query_str, function (err, res) {
+        if (err) throw err;
+        start_employee_tracker()
+    })
+
+}
+
+async function view_departments() {
+    const query_str = "SELECT * from department"
+    connection.query(query_str, function (err, res) {
+        if (err) throw err;
+        console.log("========= List of Departments =========");
+        console.table(res);
+        start_employee_tracker();
+        return res;
+    })
+}
+
+function add_role(role) {
+    const get_dept_query_str = 'SELECT * FROM department'
+    connection.query(get_dept_query_str, function (err, department_table) {
+        let departments = [];
+
+        department_table.forEach(dept => {
+            departments.push(dept.dept_name)
+        })
+
+        if (departments.length === 0) {
+            console.log("+++++++++++++++++++++++++++++++++")
+            console.log("You must add a department first.")
+            console.log("+++++++++++++++++++++++++++++++++")
+            return start_employee_tracker();
+        }
+
+        const role_dept_questions = [
+            {
+                type: "input",
+                name: "role_title",
+                message: "Input Role Title: ",
+            },
+            {
+                type: "input",
+                name: "role_salary",
+                message: "Input Role Salary (all numbers no characters): ",
+            },
+            {
+                type: "list",
+                name: "role_department",
+                message: "Input Role's Department: ",
+                choices: departments
+            }
+        ]
+        inquirer.prompt(role_dept_questions).then((response) => {
+            let query_str;
+            for (let i = 0; i <= department_table.length; i += 1) {
+                if (response.role_department === department_table[i].dept_name) {
+                    query_str =
+                        `
+                        INSERT INTO role (title, salary, dept_id)
+                        VALUES ("${response.role_title}", "${response.role_salary}", "${department_table[i].dept_id}")
+                    `;
+                    break;
+                }
+
+            };
+
+            connection.query(query_str, function (err, res) {
+                if (err) throw err;
+                start_employee_tracker()
+            })
+        })
+    })
+
+}
+
+async function view_roles() {
+
+    console.log("========= List of roles =========")
+    const query_str =
+        `
+                SELECT title, salary, dept_name
+                FROM role
+                LEFT JOIN department
+                ON role.dept_id = department.dept_id
+            `
+    connection.query(query_str, function (err, res) {
+        if (err) throw err;
+        console.table(res)
+        start_employee_tracker()
+    })
+
+}
+
+async function add_employee(restart_employee_tracker = true) {
+
+    let role_list = []
+    connection.query("SELECT role_id, title, dept_name, salary  FROM role LEFT JOIN department ON department.dept_id = role.dept_id", (err, role_table) => {
+        if (role_table.length === 0){
+            console.log("+++++++++++++++++++++++++++++++")
+            console.log("You must add a role first")
+            console.log("+++++++++++++++++++++++++++++++")
+            return start_employee_tracker()
+        }
+        role_table.forEach(role => {
+            role_list.push(role.title + " " + role.dept_name + " " + role.salary)
+        });
+        connection.query("SELECT emp_id, first_name, last_name from employee", (err, employee_table) => {
+            let employee_list = []
+            employee_table.forEach(emp => {
+                employee_list.push(emp.first_name + " " + emp.last_name);
+            })
+
+            let role_questions = [
+                {
+                    type: "input",
+                    name: "employee_first_name",
+                    message: "Input Employee's First Name: ",
+                },
+                {
+                    type: "input",
+                    name: "employee_last_name",
+                    message: "Input Employee's Last Name: ",
+                },
+                {
+                    type: "list",
+                    name: "employee_role",
+                    message: "Input Employee's Role: ",
+                    choices: role_list
+                },
+                {
+                    type: "list",
+                    name: "employee_manager",
+                    message: "Input Employee's Manager: ",
+                    choices: employee_list,
+                    when: function(answers){
+                        return employee_list >= 1
+                    }
+                }
+            ]
+
+            inquirer.prompt(role_questions)
+                .then((role_questions_response) => {
+                    let role_id;
+                    for (let j = 0; j <= role_list.length; j += 1) {
+                        if (role_questions_response.employee_role === role_table[j].title + " " + role_table[j].dept_name + " " + role_table[j].salary) {
+                            role_id = role_table[j].role_id;
+                            break;
+                        }
+                    }
+                    let manager_id = 1;
+                    for (let index = 0; index < employee_table.length; index++) {
+                        if (role_questions_response.employee_manager === employee_table[index].first_name + " " + employee_table[index].last_name) {
+                            manager_id = employee_table[index].emp_id;
+                            break;
+                        }
+
+                    }
+
+                    const query_str =
+                        `
+                            INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                            VALUES (
+                                "${role_questions_response.employee_first_name}",
+                                "${role_questions_response.employee_last_name}",
+                                "${role_id}",
+                                "${manager_id}"
+                            )
+                        `;
+
+                    connection.query(query_str, function (err, res) {
+                        if (err) throw err;
+                        if(restart_employee_tracker){
+                            return start_employee_tracker()
+                        }
+                        return
+                    })
+
+                })
+        })
+    })
+
+}
+
+async function view_employees() {
+    console.log("========= List of employees =========")
+    const query_str =
+        `
+            SELECT first_name as "First Name", last_name as "Last Name", title as Title, salary as Salary
+            FROM employee
+            LEFT JOIN role
+            ON employee.role_id = role.role_id;
+        `
+    connection.query(query_str, function (err, res) {
+        if (err) throw err;
+        console.table(res)
+
+        start_employee_tracker()
+    })
+}
+
+async function update_employee_roles(update) {
+    const get_employees_query =
+        `
+            SELECT emp_id, first_name, last_name
+            FROM employee
+        `;
+    const get_roles_query =
+        `
+            SELECT role_id as Role, title as Title, dept_name as Department, salary as Salary
+            FROM role
+            LEFT JOIN department ON department.dept_id = role.dept_id
+        `;
+    const update_role_query =
+        `
+            UPDATE employee
+            SET role_id= ?
+            WHERE emp_id = ?
+        `;
+
+    let employee_table;
+    let employee_list = [];
+    let role_table;
+    let role_list = [];
+
+    connection.query(get_employees_query, function (err, emp_table) {
+            if (err) throw err;
+
+            if (emp_table.length === 0){
+                console.log("+++++++++++++++++++++++++++++++")
+                console.log("You must add an employee first.")
+                console.log("+++++++++++++++++++++++++++++++")
+                return start_employee_tracker();
+            }
+            employee_table = emp_table;
+            emp_table.forEach(emp => {
+                employee_list.push(emp.first_name + " " + emp.last_name);
+            })
+            connection.query(get_roles_query, function (err, roles_table) {
+                    if (roles_table.length === 0){
+                        console.log("+++++++++++++++++++++++++++++++")
+                        console.log("You must add a role first");
+                        console.log("+++++++++++++++++++++++++++++++")
+                        return start_employee_tracker();
+                    }
+                    role_table = roles_table;
+                    roles_table.forEach(role => {
+                        role_list.push(role.Title + " " + role.Department + " " + role.Salary)
+                    });
+                    const update_role_questions = [
+                        {
+                            type: "list",
+                            name: "employee",
+                            message: "Select Employee new: ",
+                            choices: employee_list
+                        },
+                        {
+                            type: "list",
+                            name: "employee_role",
+                            message: "Select New Role: ",
+                            choices: role_list
+                        },
+                    ]
+                    inquirer.prompt(update_role_questions)
+                        .then((update_role_questions_response) => {
+                            let role_id;
+                            for (let j = 0; j <= role_list.length; j += 1) {
+                                if (update_role_questions_response.employee_role === role_table[j].Title + " " + role_table[j].Department + " " + role_table[j].Salary) {
+                                    role_id = role_table[j].Role;
+                                    break;
+                                }
+                            }
+                            let emp_id;
+                            for (let index = 0; index < employee_table.length; index++) {
+                                if (update_role_questions_response.employee === employee_table[index].first_name + " " + employee_table[index].last_name) {
+                                    emp_id = employee_table[index].emp_id;
+                                    break;
+                                }
+                            }
+                            connection.query(update_role_query,[role_id, emp_id], function(err) {
+                                if (err) throw err;
+                                start_employee_tracker()
+                            })
+                        })
+                        .catch((err)=>{
+                            console.log(err);
+                }) // inquier update roles questions
+                }) //get roles query
+        })
 }

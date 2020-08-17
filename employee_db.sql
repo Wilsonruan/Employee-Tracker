@@ -1,3 +1,5 @@
+drop database employee_db;
+
 CREATE DATABASE employee_db;
 USE employee_db;
 
@@ -5,24 +7,25 @@ CREATE TABLE department(
   dept_id INTEGER AUTO_INCREMENT PRIMARY KEY,
   dept_name VARCHAR(30)
 );
-
 SELECT * from department;
 
-CREATE TABLE roles(
+CREATE TABLE role(
   role_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-  role_title VARCHAR(30),
-  role_salary DECIMAL(10,2),
-  role_id INTEGER,
+  title VARCHAR(30),
+  salary DECIMAL(10,2),
+  dept_id INTEGER,
+  FOREIGN KEY (dept_id) REFERENCES department(dept_id)
 );
-
 SELECT * from role;
 
 CREATE TABLE employee(
-	employee_id INT AUTO_INCREMENT PRIMARY KEY,
-	employee_first_name VARCHAR(30), 
-	employee_last_name VARCHAR(30), 
-	employee_role_id INT, 
-	employee_manager_id INT, 
-);
+	emp_id INT AUTO_INCREMENT PRIMARY KEY,
+	first_name VARCHAR(30),
+	last_name VARCHAR(30), 
+	role_id INT, 
+	manager_id INT, 
+    FOREIGN KEY (role_id) REFERENCES role(role_id),
+    FOREIGN KEY (manager_id) REFERENCES employee(emp_id)
+  );
 
-SELECT * from employee;
+  SELECT * from employee;
