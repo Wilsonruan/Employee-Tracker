@@ -19,29 +19,27 @@ connection.connect(function (err) {
 
 });
 
-const questions = [
-    {
-        type: "list",
-        name: "what_to_do",
-        message: "What would you like to do?",
-        choices: [
-            "Add Department", "View Departments","Add Role", "View Roles", "Add Employee", "View Employees", "Update Employee Role", "Exit"
-            //, "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
-        ]
-    },
-    {
-        type: "input",
-        name: "department_name",
-        message: "Input Department Name:",
-        when: function (answers) {
-            return answers.what_to_do == "Add Department"
-        }
-    }
-]
-
 function start_employee_tracker() {
 
-    inquirer.prompt(questions)
+    inquirer.prompt([
+        {
+            type: "list",
+            name: "what_to_do",
+            message: "What would you like to do?",
+            choices: [
+                "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Exit"
+                //, "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
+            ]
+        },
+        {
+            type: "input",
+            name: "department_name",
+            message: "Input Department Name:",
+            when: function (answers) {
+                return answers.what_to_do == "Add Department"
+            },
+        }
+    ])
         .then((response) => {
             if (response.what_to_do == "Add Department") {
                 add_department(response.department_name);
@@ -268,7 +266,6 @@ async function view_employees() {
     connection.query(query_str, function (err, res) {
         if (err) throw err;
         console.table(res)
-
         start_employee_tracker()
     })
 }
