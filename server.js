@@ -105,7 +105,7 @@ function add_role(role) {
             return start_employee_tracker();
         }
 
-        const role_dept_questions = [
+        inquirer.prompt([
             {
                 type: "input",
                 name: "role_title",
@@ -122,8 +122,7 @@ function add_role(role) {
                 message: "Input Role's Department: ",
                 choices: departments
             }
-        ]
-        inquirer.prompt(role_dept_questions).then((response) => {
+        ]).then((response) => {
             let query_str;
             for (let i = 0; i <= department_table.length; i += 1) {
                 if (response.role_department === department_table[i].dept_name) {
@@ -183,7 +182,7 @@ async function add_employee(restart_employee_tracker = true) {
                 employee_list.push(emp.first_name + " " + emp.last_name);
             })
 
-            let role_questions = [
+            inquirer.prompt([
                 {
                     type: "input",
                     name: "employee_first_name",
@@ -209,10 +208,7 @@ async function add_employee(restart_employee_tracker = true) {
                         return employee_list >= 1
                     }
                 }
-            ]
-
-            inquirer.prompt(role_questions)
-                .then((role_questions_response) => {
+            ]).then((role_questions_response) => {
                     let role_id;
                     for (let j = 0; j <= role_list.length; j += 1) {
                         if (role_questions_response.employee_role === role_table[j].title + " " + role_table[j].dept_name + " " + role_table[j].salary) {
@@ -318,7 +314,7 @@ async function update_employee_roles(update) {
                     roles_table.forEach(role => {
                         role_list.push(role.Title + " " + role.Department + " " + role.Salary)
                     });
-                    const update_role_questions = [
+                    inquirer.prompt([
                         {
                             type: "list",
                             name: "employee",
@@ -331,9 +327,7 @@ async function update_employee_roles(update) {
                             message: "Select New Role: ",
                             choices: role_list
                         },
-                    ]
-                    inquirer.prompt(update_role_questions)
-                        .then((update_role_questions_response) => {
+                    ]).then((update_role_questions_response) => {
                             let role_id;
                             for (let j = 0; j <= role_list.length; j += 1) {
                                 if (update_role_questions_response.employee_role === role_table[j].Title + " " + role_table[j].Department + " " + role_table[j].Salary) {
@@ -355,7 +349,7 @@ async function update_employee_roles(update) {
                         })
                         .catch((err)=>{
                             console.log(err);
-                }) // inquier update roles questions
-                }) //get roles query
+                }) 
+                }) 
         })
 }
