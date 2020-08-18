@@ -27,8 +27,8 @@ function start_employee_tracker() {
             name: "what_to_do",
             message: "What would you like to do?",
             choices: [
-                "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Exit"
-                //, "Update Employee Manager", "View Employees by Manager", "Delete Department", "Delete Role", "Delete Employee", "View the Total Budget of a Department"
+                "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Delete Department","Exit"
+                //, "Update Employee Manager", "View Employees by Manager",  "Delete Role", "Delete Employee", "View the Total Budget of a Department"
             ]
         },
         {
@@ -55,6 +55,8 @@ function start_employee_tracker() {
                 view_employees();
             } else if (response.what_to_do == "Update Employee Role") {
                 update_employee_roles(response);
+            } else if (response.what_to_do == "Delete Department") {
+                delete_department();
             } else if (response.what_to_do == "Exit") {
                 console.log("Thank you for using Employee Tracker!")
                 return connection.end()
@@ -64,6 +66,41 @@ function start_employee_tracker() {
             return connection.end()
         })
 }
+
+function delete_department (department) {
+    const get_dept_query_str = 'SELECT * FROM department'
+    connection.query(get_dept_query_str, function (err, department_table) {
+        let departments = [];
+
+        department_table.forEach(dept => {
+            departments.push(dept.dept_name)
+        })
+
+    if (departments.length === 0) {
+        console.log("You must add a department first.")
+        return start_employee_tracker();
+    }
+
+    inquirer.prompt([
+        {
+            type: "list",
+            name: "departments_select",
+            message: "Which department would you like to delete: ",
+            choices: departments
+        }
+    ]).then((response) => {
+        let query_str = 
+        `
+        DELETE FROM department WHERE dept_name='${response.departments_select}';
+        `;
+        connection.query(query_str, function (err, res) {
+            if (err) throw err;
+            start_employee_tracker()
+        })
+    })
+})
+}
+    
 
 function add_department(department) {
     const query_str =
@@ -99,9 +136,7 @@ function add_role(role) {
         })
 
         if (departments.length === 0) {
-            console.log("+++++++++++++++++++++++++++++++++")
             console.log("You must add a department first.")
-            console.log("+++++++++++++++++++++++++++++++++")
             return start_employee_tracker();
         }
 
@@ -168,9 +203,7 @@ async function add_employee(restart_employee_tracker = true) {
     let role_list = []
     connection.query("SELECT role_id, title, dept_name, salary  FROM role LEFT JOIN department ON department.dept_id = role.dept_id", (err, role_table) => {
         if (role_table.length === 0){
-            console.log("+++++++++++++++++++++++++++++++")
             console.log("You must add a role first")
-            console.log("+++++++++++++++++++++++++++++++")
             return start_employee_tracker()
         }
         role_table.forEach(role => {
@@ -294,9 +327,7 @@ async function update_employee_roles(update) {
             if (err) throw err;
 
             if (emp_table.length === 0){
-                console.log("+++++++++++++++++++++++++++++++")
                 console.log("You must add an employee first.")
-                console.log("+++++++++++++++++++++++++++++++")
                 return start_employee_tracker();
             }
             employee_table = emp_table;
@@ -305,9 +336,7 @@ async function update_employee_roles(update) {
             })
             connection.query(get_roles_query, function (err, roles_table) {
                     if (roles_table.length === 0){
-                        console.log("+++++++++++++++++++++++++++++++")
                         console.log("You must add a role first");
-                        console.log("+++++++++++++++++++++++++++++++")
                         return start_employee_tracker();
                     }
                     role_table = roles_table;
