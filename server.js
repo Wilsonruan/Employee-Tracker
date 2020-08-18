@@ -27,8 +27,8 @@ function start_employee_tracker() {
             name: "what_to_do",
             message: "What would you like to do?",
             choices: [
-                "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Delete Department","Exit"
-                //, "Update Employee Manager", "View Employees by Manager",  "Delete Role", "Delete Employee", "View the Total Budget of a Department"
+                "Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Delete Department/Role/Employee","Exit"
+                //, "Update Employee Manager", "View Employees by Manager", "View the Total Budget of a Department"
             ]
         },
         {
@@ -67,38 +67,60 @@ function start_employee_tracker() {
         })
 }
 
-function delete_department (department) {
-    const get_dept_query_str = 'SELECT * FROM department'
-    connection.query(get_dept_query_str, function (err, department_table) {
-        let departments = [];
-
-        department_table.forEach(dept => {
-            departments.push(dept.dept_name)
-        })
-
-    if (departments.length === 0) {
-        console.log("You must add a department first.")
-        return start_employee_tracker();
-    }
-
+function delete_department () {
     inquirer.prompt([
         {
             type: "list",
-            name: "departments_select",
-            message: "Which department would you like to delete: ",
-            choices: departments
+            name: "delete",
+            message: "Which selector would you like to delete: ",
+            choices: ["department", "role", "employee"]
         }
     ]).then((response) => {
-        let query_str = 
-        `
-        DELETE FROM department WHERE dept_name='${response.departments_select}';
-        `;
-        connection.query(query_str, function (err, res) {
-            if (err) throw err;
-            start_employee_tracker()
+        const get_dept_query_str = `SELECT * FROM ${response.delete}`
+        connection.query(get_dept_query_str, function (err, department_table) {
+            let departments = [];
+            let list = []
+
+            department_table.forEach(dept => {
+                if (response.delete === "department") {
+                    departments.push(dept.dept_name)
+                    list = 'dept_name'
+                } else if (response.delete === "role") {
+                    departments.push(dept.title)
+                    list = 'title'
+                } else if (response.delete == "employee") {
+                    departments.push(dept.first_name)
+                    list = 'first_name'
+                }
+            })
+    
+        if (departments.length === 0) {
+            console.log(`You must add a ${response.delete} first.`)
+            return start_employee_tracker();
+        }
+
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "departments_select",
+                message: `Which ${response.delete} would you like to delete:`,
+                choices: departments
+            }
+        ]).then((response2) => {
+            let query_str = 
+            `
+            DELETE FROM ${response.delete} WHERE ${list}='${response2.departments_select}';
+            `;
+            connection.query(query_str, function (err, res) {
+                if (err) throw err;
+                start_employee_tracker()
+            })
         })
     })
-})
+    })
+
+
+
 }
     
 

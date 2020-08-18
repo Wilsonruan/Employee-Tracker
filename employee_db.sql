@@ -8,8 +8,6 @@ CREATE TABLE department(
   dept_name VARCHAR(30)
 );
 
-DELETE FROM department WHERE dept_id=8;
-
 SELECT * from department;
 
 CREATE TABLE role(
@@ -19,9 +17,8 @@ CREATE TABLE role(
   dept_id INTEGER,
   FOREIGN KEY (dept_id) REFERENCES department(dept_id)
 );
-SELECT * from role;
 
-DELETE FROM role WHERE role_id=1;
+SELECT * from role;
 
 CREATE TABLE employee(
 	emp_id INT AUTO_INCREMENT PRIMARY KEY,
