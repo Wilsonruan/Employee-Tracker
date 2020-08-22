@@ -3,22 +3,27 @@ var inquirer = require("inquirer");
 
 var connection = mysql.createConnection({
     host: "localhost",
+      // Your port; if not 3306
     port: process.env.PORT || 3306,
+      // Your username
     user: "root",
+      // Your password
     password: "",
     database: "employee_db"
 });
 
+// connect to the mysql server and sql database
 connection.connect(function (err) {
     if (err) {
         console.error("This isn't working!!!!" + connection.config)
         throw err;
     }
     console.log("connected as id " + connection.threadId);
+    // run the start function after the connection is made to prompt the user
     start_employee_tracker()
-
 });
 
+// function which prompts the user for what action they should take
 function start_employee_tracker() {
 
     inquirer.prompt([
@@ -41,6 +46,7 @@ function start_employee_tracker() {
         }
     ])
         .then((response) => {
+            // based on their response, call any functions below
             if (response.what_to_do == "Add Department") {
                 add_department(response.department_name);
             } else if (response.what_to_do == "View Departments") {
@@ -67,6 +73,7 @@ function start_employee_tracker() {
         })
 }
 
+// function to delete
 function delete_department () {
     inquirer.prompt([
         {
@@ -76,6 +83,7 @@ function delete_department () {
             choices: ["department", "role", "employee"]
         }
     ]).then((response) => {
+        // when finished prompting, start another prompting
         const get_dept_query_str = `SELECT * FROM ${response.delete}`
         connection.query(get_dept_query_str, function (err, department_table) {
             let departments = [];
@@ -113,17 +121,15 @@ function delete_department () {
             `;
             connection.query(query_str, function (err, res) {
                 if (err) throw err;
+                // re-prompt the user
                 start_employee_tracker()
             })
         })
     })
     })
-
-
-
 }
     
-
+// function add department
 function add_department(department) {
     const query_str =
         `
@@ -132,11 +138,12 @@ function add_department(department) {
         `;
     connection.query(query_str, function (err, res) {
         if (err) throw err;
+        // re-prompt the user
         start_employee_tracker()
     })
 
 }
-
+// function view_departments
 async function view_departments() {
     const query_str = "SELECT * from department"
     connection.query(query_str, function (err, res) {
@@ -148,6 +155,7 @@ async function view_departments() {
     })
 }
 
+//function add_role
 function add_role(role) {
     const get_dept_query_str = 'SELECT * FROM department'
     connection.query(get_dept_query_str, function (err, department_table) {
@@ -180,6 +188,7 @@ function add_role(role) {
                 choices: departments
             }
         ]).then((response) => {
+            // when finished prompting, insert a new item into the db with that info
             let query_str;
             for (let i = 0; i <= department_table.length; i += 1) {
                 if (response.role_department === department_table[i].dept_name) {
@@ -202,6 +211,7 @@ function add_role(role) {
 
 }
 
+// function view roles
 async function view_roles() {
 
     console.log("========= List of roles =========")
@@ -220,6 +230,7 @@ async function view_roles() {
 
 }
 
+// function add_employee
 async function add_employee(restart_employee_tracker = true) {
 
     let role_list = []
@@ -305,6 +316,7 @@ async function add_employee(restart_employee_tracker = true) {
 
 }
 
+//function view_employees
 async function view_employees() {
     console.log("========= List of employees =========")
     const query_str =
