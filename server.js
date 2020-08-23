@@ -61,7 +61,7 @@ function start_employee_tracker() {
                 view_employees();
             } else if (response.what_to_do == "Update Employee Role") {
                 update_employee_roles(response);
-            } else if (response.what_to_do == "Delete Department") {
+            } else if (response.what_to_do == "Delete Department/Role/Employee") {
                 delete_department();
             } else if (response.what_to_do == "Exit") {
                 console.log("Thank you for using Employee Tracker!")
@@ -74,7 +74,7 @@ function start_employee_tracker() {
 }
 
 // function to delete
-function delete_department () {
+function delete_department() {
     inquirer.prompt([
         {
             type: "list",
